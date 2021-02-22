@@ -30,5 +30,5 @@ setup(
     include_package_data=True,
     package_data={"": extra_files},
     cmdclass=versioneer.get_cmdclass(),
-
+    zip_safe=False
 )

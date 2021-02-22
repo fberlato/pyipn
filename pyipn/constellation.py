@@ -43,7 +43,7 @@ class SatelliteCollection(object):
 
         """
 
-        self._n_satellties = 0
+        self._n_satellites = 0
         self._satellites = collections.OrderedDict()
 
         # chech that everything is a satellite and
@@ -53,7 +53,7 @@ class SatelliteCollection(object):
 
             self.add_satellite(sat)
 
-        self._n_satellties = len(self._satellites)
+        self._n_satellites = len(self._satellites)
 
         self._normal_pointing = normal_pointing
 
@@ -65,8 +65,9 @@ class SatelliteCollection(object):
     @property
     def n_satellites(self):
 
-        return self._n_satellties
+        return self._n_satellites
 
+    
     @classmethod
     def from_tle_file(cls, tle_file, normal_pointing=False):
         """
@@ -91,6 +92,7 @@ class SatelliteCollection(object):
 
         return cls(*sats)
 
+    
     def add_satellite(self, satellite):
         """
         Add a new satellite
@@ -103,8 +105,9 @@ class SatelliteCollection(object):
 
         assert isinstance(satellite, Satellite)
         self._satellites[satellite.name] = satellite
-        self._n_satellties += 1
+        self._n_satellites += 1
 
+        
     def add_satellite_from_tle(self, tle):
         """
         Add a satellite from a TLE
@@ -119,6 +122,7 @@ class SatelliteCollection(object):
 
         self.add_satellite(Satellite.from_TLE(tle))
 
+        
     @classmethod
     def from_constellation(cls, num_sats, num_planes, phasing, inclination, altitude, eccentricity, name="det", normal_pointing=False):
         """
@@ -418,8 +422,6 @@ class Satellite(object):
                    perigee=tle.argp,
                    ta=0,
                    rads=False
-
-
                    )
 
     @property
@@ -450,14 +452,37 @@ class Satellite(object):
 
         return self._xyz
 
+    
     @property
     def true_alt(self):
         return float(self._true_alt)
 
+    
     @property
     def eccentricity(self):
         return float(self._eccentricity)
 
+
+    @property
+    def inclination(self):
+        return float(self._inclination)
+
+
+    @property
+    def right_ascension(self):
+        return float(self._right_ascension)
+    
+
+    @property
+    def perigee(self):
+        return float(self._perigee)
+
+
+    @property
+    def ta(self):
+        return float(self._ta)
+    
+    
     def _convert_to_rads(self, value=None):
         to_rad = pi / 180
         if value:
@@ -465,6 +490,7 @@ class Satellite(object):
         else:
             return self._inclination * to_rad, self._right_ascension * to_rad, self._perigee * to_rad, self._ta * to_rad
 
+        
     def _convert_to_degs(self, value=None):
         to_deg = 180 / pi
         if value:
@@ -473,13 +499,16 @@ class Satellite(object):
             return self._inclination_r * to_deg, self._right_ascension_r * to_deg, self._perigee_r * to_deg, \
                 self._ta_r * to_deg
 
+                
     def _get_radius(self):
         return heavenly_body_radius[self._focus.lower()]
 
+    
     def __repr__(self):
         return "{0}, {1}, {2}, {3}, {4}, {5}, {6}".format(self.name, self.altitude, self.eccentricity,
-                                                          self.inclination, self.right_ascension, self.perigee, self.ta)
+                                                              self.inclination, self.right_ascension, self.perigee, self.ta)
 
+    
     def __str__(self):
         return "Satellite Name: {0}, Alt: {1}, e: {2}, " \
                "Inclination: {3}, RA: {4}, Periapsis: {5}, Anomaly: {6}".format(self.name, self.altitude,
