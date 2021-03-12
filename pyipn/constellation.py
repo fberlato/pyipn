@@ -146,7 +146,7 @@ class SatelliteCollection(object):
 
         return cls(*constellation.satellites, normal_pointing=normal_pointing)
 
-    def as_dict(self):
+    def as_dict(self, grb_dict=None):
         """
         Build a dict of the satellites for
         a Universe object
@@ -159,14 +159,15 @@ class SatelliteCollection(object):
         group_dict = {}
         group_dict["seed"] = 1234
 
-        grb_dict = {}
+        if grb_dict == None:
+            grb_dict = {}
 
-        grb_dict["ra"] = 80
-        grb_dict["dec"] = -30
-        grb_dict["distance"] = 500
-        grb_dict["K"] = 500
-        grb_dict["t_rise"] = 1
-        grb_dict["t_decay"] = 7
+            grb_dict["ra"] = 80
+            grb_dict["dec"] = -30
+            grb_dict["distance"] = 500
+            grb_dict["K"] = 500
+            grb_dict["t_rise"] = 1
+            grb_dict["t_decay"] = 7
 
         group_dict["grb"] = grb_dict
 
@@ -187,7 +188,7 @@ class SatelliteCollection(object):
 
                 sat_dict["pointing"] = dict(ra=80, dec=-30)
 
-            sat_dict["effective_area"] = 1.
+            sat_dict["effective_area"] = sat._effective_area
 
             det_dict[name] = sat_dict
 
@@ -195,7 +196,7 @@ class SatelliteCollection(object):
 
         return group_dict
 
-    def write_to(self, file_name):
+    def write_to(self, file_name, grb_dict=None):
         """
         write out a simulation file with all satellites
         and a proxy GRB to YAML file
@@ -208,7 +209,7 @@ class SatelliteCollection(object):
 
         with open(file_name, "w") as f:
 
-            yaml.dump(stream=f, data=self.as_dict(), Dumper=yaml.SafeDumper)
+            yaml.dump(stream=f, data=self.as_dict(grb_dict), Dumper=yaml.SafeDumper)
 
     def display(self, earth_time="day", obs_time='2010-01-01T00:00:00', names=None):
 
@@ -348,7 +349,7 @@ class Constellation(object):
 class Satellite(object):
 
     def __init__(self, name, altitude, eccentricity, inclination, right_ascension, perigee, ta,
-                 focus="earth", rads=True):
+                 effective_area=1., focus="earth", rads=True):
         """FIXME! briefly describe function
 
         :param name: 
@@ -371,7 +372,8 @@ class Satellite(object):
         self._focus = focus
         self._true_alt = self.altitude + self._get_radius()
         self._eccentricity = eccentricity
-
+        self._effective_area = effective_area
+        
         if not rads:
             self._inclination = inclination
             self._right_ascension = right_ascension
@@ -481,6 +483,16 @@ class Satellite(object):
     @property
     def ta(self):
         return float(self._ta)
+
+    
+    @property
+    def effective_area(self):
+        return float(self._effective_area)
+
+    
+    @effective_area.setter
+    def effective_area(self, value):
+        self._effective_area = value
     
     
     def _convert_to_rads(self, value=None):

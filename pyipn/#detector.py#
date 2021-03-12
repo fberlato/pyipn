@@ -23,7 +23,7 @@ class Detector(object):
 
         """
 
-        self._rsp_file = rsp_file
+        self.rsp_file = rsp_file
         self._effective_area = effective_area
 
         self._pointing = pointing
@@ -34,8 +34,6 @@ class Detector(object):
         self._name = name
 
 
-    def compute_custom_a_eff(self):
-        pass
         
     @property
     def name(self):
@@ -129,6 +127,11 @@ class Detector(object):
 
             return False
         
+
+
+    def compute_custom_a_eff(self):
+        pass
+
         
     
     def build_light_curve(self, grb, T0, tstart, tstop, earth_blockage=False, seed=1234):
