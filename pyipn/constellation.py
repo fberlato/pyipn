@@ -349,19 +349,21 @@ class Constellation(object):
 class Satellite(object):
 
     def __init__(self, name, altitude, eccentricity, inclination, right_ascension, perigee, ta,
-                 effective_area=1., focus="earth", rads=True):
-        """FIXME! briefly describe function
+                 ma=0, effective_area=1., focus="earth", rads=True, circular_approx=False):
+        """
+        Creates a Satellite object, which contains all of the relevant information about the orbit.
 
-        :param name: 
-        :param altitude: 
-        :param eccentricity: 
-        :param inclination: 
-        :param right_ascension: 
-        :param perigee: 
-        :param ta: 
+        :param name: name of the spacecraft.
+        :param altitude: altitude of the spacecraft.
+        :param eccentricity: eccentricity of the orbit.
+        :param inclination: inclination of the orbit.
+        :param right_ascension: right ascension of the ascending node.
+        :param perigee: angular argument of the perigee ( or more generally periapsis).
+        :param ta: true anomaly.
+        :param ma: mean anomaly.
 
-        :param focus: 
-        :param rads: 
+        :param focus: celestial body at the focus point of the orbit.
+        :param rads: True if arguments are in radians, False if in degs.
         :returns: 
         :rtype: 
 
@@ -380,6 +382,14 @@ class Satellite(object):
             self._perigee = perigee
             self._ta = ta
             self._inclination_r, self._right_ascension_r, self._perigee_r, self._ta_r = self._convert_to_rads()
+
+            if circular_approx:
+                ma=ta
+
+            self._ma = ma
+            self._ma_r = np.deg2rad(ma)
+                
+            
         else:
             self._inclination_r = inclination
             self._right_ascension_r = right_ascension
@@ -387,6 +397,13 @@ class Satellite(object):
             self._ta_r = ta
             self._inclination, self._right_ascension, self._perigee, self._ta = self._convert_to_degs()
 
+            if circular_approx:
+                ma = ta
+               
+            self._ma_r = ma
+            self._ma = np.rad2deg(ma)
+                
+            
         self._compute_position()
 
     def _compute_position(self):
@@ -398,7 +415,7 @@ class Satellite(object):
                                              i=self._inclination_r,
                                              arg_pe=self._perigee_r,
                                              raan=self._right_ascension_r,
-                                             body=earth
+                                             body=earth, M0=self._ma_r
                                              )
 
         # natural output is in meters so convert
