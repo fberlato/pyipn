@@ -53,20 +53,21 @@ class Universe(object):
         self._locked = locked
         self._yaml_dict = yaml_dict
 
-    def register_detector(self, detector):
-        """FIXME! briefly describe function
+    def register_detector(self, *args):
+        """
+        Add one or more detectors to the simulation.
 
         :param detector: 
         :returns: 
         :rtype: 
 
         """
+        for detector in args:
+            self._detectors[detector.name] = detector
 
-        self._detectors[detector.name] = detector
+            self._n_detectors += 1
 
-        self._n_detectors += 1
-
-        assert self._n_detectors == len(self._detectors.keys())
+            assert self._n_detectors == len(self._detectors.keys())
 
     @property
     def grb(self):

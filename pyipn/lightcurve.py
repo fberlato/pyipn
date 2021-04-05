@@ -21,8 +21,9 @@ class LightCurve(object):
 
         self._bkg_arrival_times = bkg_arrival_times
 
+        
     def get_binned_light_curve(self, tstart, tstop, dt):
-        """FIXME! briefly describe function
+        """Returns rates, bin edges and counts of the lightcurve.
 
         :param tstart: 
         :param tstop: 
@@ -46,6 +47,25 @@ class LightCurve(object):
 
         return rate, edges, counts
 
+
+    def plot_binned_lightcurve(self, tstart, tstop, dt):
+
+        rates, bin_edges, counts = self.get_binned_light_curve(tstart, tstop, dt)
+        
+        fig, ax = plt.subplots()
+
+        for i, rate in enumerate(rates):
+            plt.hlines(y=rate, xmin=bin_edges[i], xmax=bin_edges[i+1], lw=1)
+
+            if i>0:
+                plt.vlines(x=bin_edges[i], ymin=min(rates[i-1],rates[i]), ymax=max(rates[i-1],rates[i]))
+
+        plt.xlabel('Time (s)')
+        plt.ylabel('Rates (cts/s)')
+    
+        return fig
+
+    
     def display(self, tstart, tstop, dt, ax=None, **kwargs):
         """FIXME! briefly describe function
 
