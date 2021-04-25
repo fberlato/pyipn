@@ -16,13 +16,13 @@ class Correlator(object):
     def __init__(self, lc_1, lc_2, idx_lc_1, idx_beg_lc2, idx_end_lc2, cl_sigma=[1, 2, 3], bkg_rate=500):
         """FIXME! briefly describe function
 
-        :param lc_1: 
-        :param lc_2: 
+        :param lc_1: binned lightcurve object 1
+        :param lc_2: binned lightcurve object 2
         :param idx_lc_1: 
         :param idx_beg_lc2: 
         :param idx_end_lc2: 
-        :param cl_sigma: 
-        :param bkg_rate: 
+        :param cl_sigma: confidence levels in sigma
+        :param bkg_rate: backround rate in cts/s
         :returns: 
         :rtype: 
 
@@ -34,11 +34,13 @@ class Correlator(object):
         self._idx_beg_lc2, self._idx_end_lc2 = idx_beg_lc2, idx_end_lc2
         self.lc_1, self.lc_2 = lc_1, lc_2
         self._idx_lc_1 = idx_lc_1
+        self._bkg_rate = bkg_rate
 
         dt_grb_ms = (idx_end_lc2 - idx_beg_lc2)*self.lc_2.res_ms
         self._idx_beg_lc1, self._idx_end_lc1 = self.lc_1.get_max_sn(
             dt_grb_ms, bkg_rate)
 
+        # scale factor between the two lightcurves
         self._fscale = np.sum(lc_1.get_src_counts()[self._idx_beg_lc1:self._idx_end_lc1+1]) / np.sum(
             lc_2.get_src_counts()[self._idx_beg_lc2:self._idx_end_lc2+1])
 
@@ -76,9 +78,9 @@ class Correlator(object):
         dT1 = (self._idx_end_lc1 - self._idx_beg_lc1)*self.lc_1.res_ms
 
         str_out = "Cross-correlation info:\n"
-        str_out += "CC interval for lc2 (i_beg, i_end, dT): {:4d} {:4d} {:4d} ms\n".format(
+        str_out += "CC interval for lc2 (i_beg, i_end, dT): {:4d} {:4d} {:4f} ms\n".format(
             self._idx_beg_lc2, self._idx_end_lc2, dT2)
-        str_out += "CC interval for lc1 (i_beg, i_end, dT): {:4d} {:4d} {:4d} ms\n".format(
+        str_out += "CC interval for lc1 (i_beg, i_end, dT): {:4d} {:4d} {:4f} ms\n".format(
             self._idx_beg_lc1, self._idx_end_lc1, dT1)
         str_out += "Lc scale factor: {:.3f}\n".format(self._fscale)
         str_out += "Lc 1 i_start: {:d}\n".format(self._idx_lc_1)
@@ -256,7 +258,7 @@ def correlate(
     i_min = 0
     n_min = 0
 
-    nDOF = (i_end_2 - i_beg_2) / n_sum_2  # number degrees of freedom
+    nDOF = (i_end_2 - i_beg_2) / n_sum_2  # number of degrees of freedom
     fRij = 0
 
     for i in range(i_beg_1, i_beg_1 + n_max_1):
@@ -276,10 +278,12 @@ def correlate(
             fCnt2 = 0
             fErr2 = 0
 
+            # if n_sum_2 > 1 sums together the next n_sum_2 bins of lc2
             for iSum2 in range(k, k + n_sum_2):
                 fCnt2 += arr_cnts_2[iSum2]
                 fErr2 += arr_cnts_err_2[iSum2]
 
+            # multiply counts by the scale factor (squared for the error)
             fCnt2 *= fscale
             fErr2 *= fscale * fscale
 
@@ -299,13 +303,16 @@ def correlate(
             fdErr1 = fdT * arr_cnts_err_1[l]
             fErr1 += (1.0 - fdT) * arr_cnts_err_1[l]
 
+            # move forward in time by one step (time difference stays the same inside k for cycle)
             l = l + 1
             fT1 += dt_1
             fT2 += dt_2 * n_sum_2
 
+            # squared difference of the counts
             fDif = fCnt1 - fCnt2
             fDif *= fDif
 
+            # divide the sq dif of counts by the sum of the squared count errors 
             fDif /= (fErr1 + fErr2)
             fRij += fDif
 

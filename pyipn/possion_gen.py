@@ -51,7 +51,7 @@ def mulit_pulse(x, Ks, t_starts, t_rises, t_decays):
 
     # figure out how many pulses we have
     n_pulses = len(Ks)
-
+    
     out = 0.0
 
     # loop through them all

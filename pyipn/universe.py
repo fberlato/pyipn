@@ -307,6 +307,34 @@ class Universe(object):
 
         return universe
 
+
+    def get_time_lag(self, detector1, detector2):
+        """
+        Calculates the time lag of the signal between two detectors in ms.
+
+        :param detector1: name of detector 1.
+        :param detector2: name of detector 2.
+        """
+        
+        
+        # speed of light in km/s
+        c = constants.c.to(u.km/u.ms).value
+        
+        pos_1 = self.detectors[detector1].location.get_cartesian_coord().xyz.value
+        pos_2 = self.detectors[detector2].location.get_cartesian_coord().xyz.value
+
+        # normalized grb pointing vector
+        grb_norm = self.grb.location.get_cartesian_coord().xyz.value
+        grb_norm = grb_norm/np.linalg.norm(grb_norm)
+
+        # the position difference vector between the dectors is projected along grb_norm and divided by c
+        v12 = pos_1-pos_2
+        delta_t = np.inner(v12, grb_norm)/c * u.ms
+
+        return delta_t
+
+    
+    
     def calculate_annulus(self, detector1, detector2):
         """FIXME! briefly describe function
 
@@ -403,6 +431,7 @@ class Universe(object):
         tstop = np.atleast_1d(tstop)
         dt = np.atleast_1d(dt)
 
+        det_count = 0
         for n, (det_nam, v) in enumerate(self._detectors.items()):
 
             lc = self._light_curves[det_nam]
@@ -422,9 +451,12 @@ class Universe(object):
             n_time_bins.append(len(c))
 
             xyz = v.location.get_cartesian_coord().xyz.value
-            sc_pos[n] = xyz
-            sc_pointing[n] = v.pointing.cartesian
+            sc_pos[det_count] = xyz
+            sc_pointing[det_count] = v.pointing.cartesian
 
+            det_count += 1
+
+            
         max_n_time_bins = max(n_time_bins)
 
         counts_stan = np.zeros((n_dets, max_n_time_bins), dtype=int)
