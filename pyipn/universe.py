@@ -312,6 +312,9 @@ class Universe(object):
         """
         Calculates the time lag of the signal between two detectors in ms.
 
+        Positive lag -> signal reaches det 1 first.
+        Negative lag -> signal reaches det 2 first.
+
         :param detector1: name of detector 1.
         :param detector2: name of detector 2.
         """
