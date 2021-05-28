@@ -6,6 +6,33 @@ from numba.extending import overload
 from pyipn.numba_array import VectorFloat64
 
 
+#@nb.njit(fastmath=True, cache=True)
+#def norris(x, K, t_start, t_rise, t_decay):
+#    """
+#
+#    Pulse shape for GRBs. It is a FRED style
+#    pulse
+#
+#    :param x: time coordinate 
+#    :param K: the amplitude
+#    :param t_start: start of the pulse
+#    :param t_rise: rise time constant
+#    :param t_decay: decay time constant
+#    :returns: 
+#    :rtype: 
+#
+#    """
+#
+#    if x > t_start:
+#        return (
+#            K
+#            * np.exp(2.0 * np.sqrt(t_rise / t_decay))
+#            * np.exp((-t_rise / (x - t_start)) - (x - t_start) / t_decay)
+#        )
+#    else:
+#        return 0.0
+
+
 @nb.njit(fastmath=True, cache=True)
 def norris(x, K, t_start, t_rise, t_decay):
     """
@@ -15,7 +42,7 @@ def norris(x, K, t_start, t_rise, t_decay):
 
     :param x: time coordinate 
     :param K: the amplitude
-    :param t_start: start of the pulse
+    :param t_start: peak of the pulse
     :param t_rise: rise time constant
     :param t_decay: decay time constant
     :returns: 
@@ -23,16 +50,13 @@ def norris(x, K, t_start, t_rise, t_decay):
 
     """
 
-    if x > t_start:
-        return (
-            K
-            * np.exp(2.0 * np.sqrt(t_rise / t_decay))
-            * np.exp((-t_rise / (x - t_start)) - (x - t_start) / t_decay)
-        )
+    if x >= t_start:
+        return (K * np.exp(-(x - t_start)/t_decay))
+            
     else:
-        return 0.0
+        return (K * np.exp(-(x - t_start)**2/t_rise**2))
 
-
+    
 @nb.njit(fastmath=True, cache=True)
 def mulit_pulse(x, Ks, t_starts, t_rises, t_decays):
     """

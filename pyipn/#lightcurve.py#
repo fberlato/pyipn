@@ -160,6 +160,12 @@ class BinnedLightCurve(object):
 
     def get_src_counts(self, bkg_rate=500.):
 
+        sub_cts = self._counts - bkg_rate * self._dt
+        
+        if sub_cts < 0:
+            return 0
+        else:
+        
         return self._counts - bkg_rate * self._dt
     
     def get_max_sn(self, dt_ms, bkg_rate=500):
