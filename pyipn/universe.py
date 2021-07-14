@@ -461,7 +461,11 @@ class Universe(object):
 
             ipv.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], **kwargs)
 
-    def to_stan_data(self, tstart, tstop, dt=0.2, k=50, n_cores=1, factor=0.5, factor2=1):
+
+            
+    def to_stan_data(
+        self, tstart, tstop, dt=0.2, k=50, n_cores=1, factor=0.5, factor2=1
+    ):
 
         n_dets = len(self._detectors)
 
@@ -470,17 +474,16 @@ class Universe(object):
         exposures = []
         sc_pos = np.empty((n_dets, 3))
         sc_pointing = np.empty((n_dets, 3))
+        effective_area = np.empty(n_dets)
 
         n_time_bins = []
 
         # allow for variable time selections
 
-
         tstart = np.atleast_1d(tstart)
         tstop = np.atleast_1d(tstop)
         dt = np.atleast_1d(dt)
 
-        det_count = 0
         for n, (det_nam, v) in enumerate(self._detectors.items()):
 
             lc = self._light_curves[det_nam]
@@ -500,12 +503,10 @@ class Universe(object):
             n_time_bins.append(len(c))
 
             xyz = v.location.get_cartesian_coord().xyz.value
-            sc_pos[det_count] = xyz
-            sc_pointing[det_count] = v.pointing.cartesian
+            sc_pos[n] = xyz
+            sc_pointing[n] = v.pointing.cartesian
+            effective_area[n] = v.effective_area.effective_area
 
-            det_count += 1
-
-            
         max_n_time_bins = max(n_time_bins)
 
         counts_stan = np.zeros((n_dets, max_n_time_bins), dtype=int)
@@ -529,7 +530,6 @@ class Universe(object):
         #                 grainsize=1,
         #                 bw=1. )
 
-        
         grainsize = []
         for n in n_time_bins:
 
@@ -543,16 +543,18 @@ class Universe(object):
             counts=counts_stan,
             time=times_stan,
             exposure=exposure_stan,
+            effective_area=effective_area,
             sc_pos=sc_pos,
             sc_pointing_norm=sc_pointing,
             k=k,
             grainsize=grainsize,
-            grainsize_meta = max(1,int(np.round(n_dets / n_cores) * factor2))
-            
+            grainsize_meta=max(1, int(np.round(n_dets / n_cores) * factor2)),
         )
 
         return data
 
+
+    
     def plot_all_annuli(
         self,
         projection="astro degrees mollweide",
