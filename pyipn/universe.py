@@ -464,11 +464,15 @@ class Universe(object):
 
             
     def to_stan_data(
-        self, tstart, tstop, dt=0.2, k=50, n_cores=1, factor=0.5, factor2=1
+        self, tstart, tstop, dt=0.2, k=50, n_cores=1, factor=0.5, factor2=1, det_dict=None
     ):
 
-        n_dets = len(self._detectors)
-
+        if det_dict == None:
+            n_dets = len(self._detectors)
+            det_dict = self._detectors
+        else:
+            n_dets = len(det_dict)
+            
         counts = []
         times = []
         exposures = []
@@ -484,12 +488,12 @@ class Universe(object):
         tstop = np.atleast_1d(tstop)
         dt = np.atleast_1d(dt)
 
-        for n, (det_nam, v) in enumerate(self._detectors.items()):
+        det_count = 0
+        for n, (det_nam, v) in enumerate(det_dict.items()):
 
             lc = self._light_curves[det_nam]
 
             if n >= len(tstart):
-
                 n = 0
 
             _, t, c = lc.get_binned_light_curve(tstart[n], tstop[n], dt[n])
@@ -503,10 +507,13 @@ class Universe(object):
             n_time_bins.append(len(c))
 
             xyz = v.location.get_cartesian_coord().xyz.value
-            sc_pos[n] = xyz
-            sc_pointing[n] = v.pointing.cartesian
-            effective_area[n] = v.effective_area.effective_area
 
+            sc_pos[det_count] = xyz
+            sc_pointing[det_count] = v.pointing.cartesian
+            effective_area[det_count] = v.effective_area.effective_area
+
+            det_count += 1
+            
         max_n_time_bins = max(n_time_bins)
 
         counts_stan = np.zeros((n_dets, max_n_time_bins), dtype=int)
